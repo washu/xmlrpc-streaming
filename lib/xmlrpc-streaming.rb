@@ -1,0 +1,1 @@
+require 'client/streaming_client'
