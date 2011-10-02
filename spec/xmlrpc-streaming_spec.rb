@@ -6,14 +6,14 @@ describe "XmlrpcStreaming" do
     client.user.should == "me"
   end
   it "should send a body async" do
-    client = XMLRPC::Client.new2 "http://www.foodlion.com/Search"
-    #client.set_debug $stderr
-    client.call2_async "search","a"
+    client = XMLRPC::Client.new2 "http://time.xmlrpc.com/RPC2"
+    proxy = client.proxy_async("currentTime")
+    proxy.getCurrentTime.to_time.should  > Time.now
   end
   it "should send a body sync" do
-    client = XMLRPC::Client.new2 "http://www.foodlion.com/Search"
-    #client.set_debug $stderr
-    client.call2 "search","a"
+    client = XMLRPC::Client.new2 "http://time.xmlrpc.com/RPC2"
+    proxy = client.proxy("currentTime")
+    proxy.getCurrentTime.to_time.should > Time.now
   end
   
   it "should encode base64 as an io object" do

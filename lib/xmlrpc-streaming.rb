@@ -52,12 +52,12 @@ module XMLRPC
     
     def call2_async(method, *args)
       data = do_rpc(true,method,*args)
-      #parser().parseMethodResponse(data)
+      parser().parseMethodResponse(data)
     end
     
     def call2(method, *args)
       data = do_rpc(false,method,*args)
-      #parser().parseMethodResponse(data)
+      parser().parseMethodResponse(data)
     end
     
     private
@@ -98,6 +98,11 @@ module XMLRPC
       
       # TODO
       # Write the request to the file to stream out
+      request_message.write '<?xml version="1.0"?><methodCall><methodName>'
+      request_message.write method
+      request_message.write '</methodName><params>'
+      # Serialize args here
+      request_message.write '</params></methodCall>'
       request_message.close
       content_length = request_message.size
       request_message.open
