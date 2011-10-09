@@ -86,15 +86,14 @@ module XMLRPC
                 value = param[key]
                 @io << "<member>"
                 write_tag "name",key.to_s
-                con2value(vaue)
-                @io << "</member></value>"
+                con2value(value)
+                @io << "</member>"
               end
-              @io << "/struct>"
+              @io << "</struct></value>"
 
             when Hash
               # TODO: can a Hash be empty?
               @io << "<value><struct>"
-
               param.each do |key, value|
                 @io << "<member>"
                 write_tag "name", key.to_s
