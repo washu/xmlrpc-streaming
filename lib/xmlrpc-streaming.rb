@@ -34,19 +34,13 @@ require 'stringio'
 require 'xmlrpc/base64'
 require 'xmlrpc/client'
 require 'tempfile'
-
-# Add a to_io method to existing base64 class
-class << XMLRPC::Base64
-  def to_io
-    StringIO.new(@str)
-  end
-end
+require 'stream_writer'
 
 module XMLRPC
   class Client
     
     
-    def set_debug(stream)
+    def set_debug_stream(stream)
       @debug_stream = stream
     end
     
@@ -95,14 +89,9 @@ module XMLRPC
       # Construct the request data
       request_message = Tempfile.new('xmlrpc-stream-request')
       data = Tempfile.new("xmlrpc-response-body")
-      
-      # TODO
-      # Write the request to the file to stream out
-      request_message.write '<?xml version="1.0"?><methodCall><methodName>'
-      request_message.write method
-      request_message.write '</methodName><params>'
-      # Serialize args here
-      request_message.write '</params></methodCall>'
+      # Use the streamwrite to write the temp file
+      write = StreamWriter.new(request_message)
+      write.methodCall(method,*args)
       request_message.close
       content_length = request_message.size
       request_message.open
@@ -172,14 +161,8 @@ module XMLRPC
           WEBrick::Cookie.new(cookie.name, cookie.value).to_s
         end.join("; ")
       end
-      
-      # TODO Parse the response stream with the tempfile as the source
-      # convert base64 objects to TempFiles for reading, based on wether we should adapt it
-      
       # Return the TempFile
       return data
     end
-    
-    
-  end
+  end  
 end
