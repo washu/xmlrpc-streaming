@@ -36,9 +36,61 @@ require 'xmlrpc/client'
 require 'tempfile'
 require 'stream_writer'
 
+# Add a to_io method to existing base64 class
+module XMLRPC
+  class Base64
+    
+    def initialize(str, state = :dec)
+      @state = state
+      @str = nil
+      @stream = false
+      case state
+      when :enc
+        if str.respond_to?(:read)
+          @str = str
+          @stream = true
+        else
+          @str = XMLRPC::Base64.decode(str)
+        end
+      when :dec
+        @str = str
+        if str.respond_to?(:read)
+          @stream = true
+        end        
+      else
+        raise ArgumentError, "wrong argument; either :enc or :dec"
+      end
+    end
+    
+    def to_io
+      if @stream
+        @str
+      else
+        StringIO.new(@str)
+      end
+    end
+    
+    def decoded
+      if @stream
+        @str.read
+      else
+        @str
+      end
+    end
+    
+    def encoded
+      if @stream
+        Base64.encode(@str.read)
+      else
+        Base64.encode(@str)
+      end
+    end
+    
+  end
+end
+
 module XMLRPC
   class Client
-    
     
     def set_debug_stream(stream)
       @debug_stream = stream

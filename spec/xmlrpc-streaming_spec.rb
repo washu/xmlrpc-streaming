@@ -16,36 +16,35 @@ describe "XmlrpcStreaming" do
     proxy.getCurrentTime.to_time.should_not == Time.now
   end
   
-  it "should encode base64 as an io object" do
-    pending "add test for base64 as stream"
+  it "should add a to_io method to base64 class" do
+    base64 = XMLRPC::Base64.new("dkjfkdjhfkdjhfkdhfkjdhkj")
+    base64.to_io.should answer_to(:read)
   end
   
-  it "should decode base64 into a stream" do
-    pending "Test base64.to_io"
+  it "should add a base64 initializer that handles IO objects" do
+    base64 = XMLRPC::Base64.new(File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')))
+    base64.should_not be_nil
   end
   
-  it "should handle base64 object as stream" do
-    pending "test base64.to_io reads properly"
-  end
-  
-  it "should return a base64 object when called with a base64 object" do
-    pending "ensure when gien a base64 object we return one"
-  end
-  
-  it "should handle an readable object for streaming" do
-    pending "when given an object that responds to read, read in chunks and add to temp file"
-  end
-  
-  it "should pull parse the repsonse" do
-    pending "use a pull parser for data, ensure we dont DOM the xml"
+  it "should set base64 to_io to return an IO object when given one" do
+    base64 = XMLRPC::Base64.new(File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb')))
+    base64.to_io.should be_kind_of(IO)
   end
   
   it "should call wordpress for testing" do
     client = XMLRPC::Client.new2 "https://salsxmltest.wordpress.com/xmlrpc.php"
-    client.set_debug_stream $stderr
-    client.call "wp.getUsersBlogs", "washu214", "abc123", File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb'))
+    m = client.call "wp.getUsersBlogs", "washu214", "abc123", File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb'))
+    m.should_not be_empty
+  end
+  
+  it "should upload a base64 object to wordpress" do
+    pending("Create a blog post with a large image")
     #blogid 28060656
     #https://salsxmltest.wordpress.com/xmlrpc.php
+  end
+
+  it "should upload a large binary object and not run out of memory" do
+    pending("add large file upload test")
   end
   
 end

@@ -7,5 +7,12 @@ require 'ruby-prof'
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
+RSpec::Matchers.define :answer_to do |method|
+  match do |obj|
+    obj.respond_to?(method)
+  end
+end
+  
 RSpec.configure do |config| 
+  
 end

@@ -1,12 +1,6 @@
 #
 # Stream Writer, will write out the XMLRPC data to an IO object
 #
-# Add a to_io method to existing base64 class
-class << XMLRPC::Base64
-  def to_io
-    StringIO.new(@str)
-  end
-end
 
 module XMLRPC
     class StreamWriter
@@ -127,7 +121,7 @@ module XMLRPC
             when XMLRPC::Base64
               write_base64(param.to_io)
               
-            when IO, response_to?(:read)
+            when IO, respond_to?(:read)
               write_base64(param)
 
             else
