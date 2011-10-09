@@ -1,8 +1,8 @@
 = xmlrpc-streaming
 
-This package will enahnce the built-in XMLRPC client to ruby
+This package will enhance the built-in XMLRPC client to ruby
 It changes the following:
-* Base64 now accepts an IO object to its contructor
+* Base64 now accepts an IO object to its constructor
 * The XMLRPC request will now be streamed to the server. This
   will be a little faster and generate much less garbage. It should
   also fix issues where large Base64 objects sent to the server can cause out of memory errors
