@@ -5,6 +5,7 @@
 module XMLRPC
     class StreamWriter
         
+        WRITE_BUFFER_SIZE = 33972
         # Create a write with a given IO
         def initialize(io)
           @io = io
@@ -41,7 +42,7 @@ module XMLRPC
           @io << "<value><base64>"
             # We read 3 at a time pushed to the file
             # so we dont load the entire file into memory and we ensure the proper end coding sequence
-            while (buf = data_stream.read(3)) != nil do
+            while (buf = data_stream.read(WRITE_BUFFER_SIZE)) != nil do
               @io << [buf].pack('m').chop
             end
           @io << "</base64></value>"
