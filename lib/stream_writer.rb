@@ -12,11 +12,13 @@ module XMLRPC
         end
         
         def methodCall(name, *params)
-          @io << '<?xml version="1.0"?><methodCall><methodName>'
+          @io << '<?xml version="1.0" ?><methodCall><methodName>'
           @io << name
           @io << '</methodName><params>'
           params.each do |param|
+            @io << "<param>"
             conv2value(param)
+            @io << "</param>"
           end
           @io << '</params></methodCall>'
         end
@@ -24,6 +26,7 @@ module XMLRPC
         
         private
         
+        # escape some text
         def text(txt)
           cleaned = txt.dup
           cleaned.gsub!(/&/, '&amp;')
@@ -32,20 +35,31 @@ module XMLRPC
           cleaned
         end
         
+        # write a tag with value tags around it
         def write_tag(tag,value)
+          @io << "<value><#{tag}>#{text(value)}</#{tag}></value>"
+        end
+                
+        # write teh tag directly without the value tags
+        def write_elem(tag, value)
+          @io << "<#{tag}>#{text(value)}</#{tag}>"
+        end
+                
+        def write_with_children(tag,sub = nil)
           @io << "<value><#{tag}>"
-          @io << text(value)
-          @io << "</#{tag}></value>"
+          @io<< "<#{sub}>" if sub
+          yield if block_given?
+          @io<< "</#{sub}>" if sub
+          @io << "</#{tag}></value>" 
         end
         
+        # write base64 data to the output stream
         def write_base64(data_stream)
-          @io << "<value><base64>"
-            # We read 3 at a time pushed to the file
-            # so we dont load the entire file into memory and we ensure the proper end coding sequence
+          write_with_children "base64" do
             while (buf = data_stream.read(WRITE_BUFFER_SIZE)) != nil do
               @io << [buf].pack('m').chop
             end
-          @io << "</base64></value>"
+          end
         end
         
         def conv2value(param)
@@ -71,46 +85,39 @@ module XMLRPC
               write_tag "string", param
 
             when NilClass
-              if Config::ENABLE_NIL_CREATE
-                @io << "<nil/>"
-              else
-                raise "Wrong type NilClass. Not allowed!"
-              end
+              @io << "<nil/>" if Config::ENABLE_NIL_CREATE
+              raise "Wrong type NilClass. Not allowed!" unless Config::ENABLE_NIL_CREATE
 
             when Float
               write_tag "double", param.to_s
 
             when Struct
-              @io << "<value><struct>"
-              param.members.each do |key|
-                value = param[key]
-                @io << "<member>"
-                write_tag "name",key.to_s
-                con2value(value)
-                @io << "</member>"
+              write_with_children "struct" do
+                param.members.each do |key|
+                  value = param[key]
+                  @io << "<member>"
+                  write_elem("name",key.to_s)
+                  con2value(value)
+                  @io << "</member>"
+                end
               end
-              @io << "</struct></value>"
 
             when Hash
-              # TODO: can a Hash be empty?
-              @io << "<value><struct>"
-              param.each do |key, value|
-                @io << "<member>"
-                write_tag "name", key.to_s
-                conv2value(value)
-                @io << "</member>"
+              write_with_children "struct" do
+                param.each do |key, value|
+                  @io << "<member>"
+                  write_elem("name", key.to_s)
+                  conv2value(value)
+                  @io << "</member>"
+                end
               end
-              @io << "</struct></value>"
 
             when Array
-              # TODO: can an Array be empty?
-              @io << "<value><array>"
-              @io << "<data>"
-              param.each do |elem|
-                conv2value(elem)
+              write_with_children "array","data" do
+                param.each do |elem|
+                  conv2value(elem)
+                end
               end
-              @io << "</data>"
-              @io << "</array></value>"
 
             when Time, Date, ::DateTime
               write_tag "dateTime.iso8601", param.strftime("%Y%m%dT%H:%M:%S")

@@ -1,6 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe "XmlrpcStreaming" do
+  
   it "should create an instance with has values" do
     client = XMLRPC::Client.new2 "http://me@test.com/RPC2"
     client.user.should == "me"
@@ -43,6 +44,79 @@ describe "XmlrpcStreaming" do
     #https://salsxmltest.wordpress.com/xmlrpc.php
   end
 
+  it "should encode data the same as the original encoder" do
+    creater = XMLRPC::Create.new
+    io_block = ''
+    streamer = XMLRPC::StreamWriter.new io_block
+    doc = creater.methodCall "test", [1,2,3], { :key=> 1, :d => 'v', :x => ['a','b'] }
+    # Strip the \n off of the document
+    doc.chop!
+    streamer.methodCall "test", [1,2,3], { :key=> 1, :d => 'v', :x => ['a','b'] }
+    io_block.should == doc
+  end
+
+  it "should encode data the same as the original with a time object" do
+    creater = XMLRPC::Create.new
+    io_block = ''
+    streamer = XMLRPC::StreamWriter.new io_block
+    doc = creater.methodCall "test", Time.now
+    # Strip the \n off of the document
+    doc.chop!
+    streamer.methodCall "test", Time.now
+    io_block.should == doc
+  end
+
+  it "should encode data the same as the original with a Date object" do
+    creater = XMLRPC::Create.new
+    io_block = ''
+    streamer = XMLRPC::StreamWriter.new io_block
+    doc = creater.methodCall "test", Date.today
+    # Strip the \n off of the document
+    doc.chop!
+    streamer.methodCall "test", Date.today
+    io_block.should == doc
+  end
+
+  it "should encode data the same as the original with a Marshalable object" do
+    klass = Class.new do
+      include XMLRPC::Marshallable
+      attr_accessor :name, :date
+    end
+    Object.const_set 'Testable', klass
+    creater = XMLRPC::Create.new
+    io_block = ''
+    streamer = XMLRPC::StreamWriter.new io_block
+    doc = creater.methodCall "test", Testable.new
+    # Strip the \n off of the document
+    doc.chop!
+    streamer.methodCall "test", Testable.new
+    io_block.should == doc
+  end
+
+  it "should encode data the same as the original with a Base64 object" do
+    creater = XMLRPC::Create.new
+    io_block = ''
+    b64 = XMLRPC::Base64.new 'testing junk'
+    streamer = XMLRPC::StreamWriter.new io_block
+    doc = creater.methodCall "test", b64
+    # Strip the \n out as the original will include a \n after a base64 object
+    doc.gsub!(/\n/,'')
+    streamer.methodCall "test", b64
+    io_block.should == doc
+  end  
+
+  it "should encode data the same as the original with a Base64 object" do
+    creater = XMLRPC::Create.new
+    io_block = ''
+    b64 = XMLRPC::Base64.new StringIO.new 'testing junk'
+    streamer = XMLRPC::StreamWriter.new io_block
+    doc = creater.methodCall "test", b64
+    # Strip the \n out as the original will include a \n after a base64 object
+    doc.gsub!(/\n/,'')
+    streamer.methodCall "test", b64
+    io_block.should == doc
+  end  
+  
   it "should upload a large binary object and not run out of memory" do
     pending("add large file upload test")
   end

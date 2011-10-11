@@ -62,36 +62,54 @@ module XMLRPC
       end
     end
     
+    # Create an IO stream out of the data if it isnt a stream already
+    # side effect: will call rewind on the stream if it is rewindable
     def to_io
       if @stream
+        if @str.respond_to?(:rewind)
+          @str.rewind
+        end
         @str
       else
         StringIO.new(@str)
       end
     end
     
+    # Get the decoded string
+    # if theunderlying string is a stream it will rewind before the call
     def decoded
       if @stream
+        if @str.respond_to?(:rewind)
+          @str.rewind
+        end
         @str.read
       else
         @str
       end
     end
     
+    # Get the encoded string
+    # if the underlying string is a stream will call rewind first
     def encoded
       if @stream
+        if @str.respond_to?(:rewind)
+          @str.rewind
+        end
         Base64.encode(@str.read)
       else
         Base64.encode(@str)
       end
     end
-    
   end
 end
 
 module XMLRPC
   class Client
     
+=begin
+    set_debug_stream stream
+    will enable HTTP debuggin to the passed in stream
+=end
     def set_debug_stream(stream)
       @debug_stream = stream
     end
