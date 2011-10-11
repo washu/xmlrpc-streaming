@@ -131,12 +131,14 @@ module XMLRPC
       # Post via stream
       req = Net::HTTP::Post.new(path,header)
       req.body_stream = request_file
+      sink.binmode
       resp = client.request(req) do |res|
         res.read_body do |b|
           sink.write(b)
         end
+        sink.rewind
         sink.size
-        sink.open
+        sink
       end
       resp
     end
