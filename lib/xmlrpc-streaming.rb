@@ -208,7 +208,7 @@ module XMLRPC
       # them for poor implmentations of servers
       if ct !~ /\/xml$/
         data.unlink
-        raise "Wrong content-type (received '#{ct}' but expected 'text/xml') *Use set_debug for details"
+        raise "Wrong content-type (received '#{ct}' but expected 'text/xml') *Use set_debug_stream for details"
       end
       
       # Parse the body up to the correct format and recalc size
