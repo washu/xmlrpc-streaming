@@ -33,7 +33,7 @@ describe "XmlrpcStreaming" do
   end
   
   it "should call wordpress for testing" do
-    client = XMLRPC::Client.new2 "https://salsxmltest.wordpress.com/xmlrpc.php"
+    client = XMLRPC::Client.new2 "http://salsxmltest.wordpress.com/xmlrpc.php"
     m = client.call "wp.getUsersBlogs", "washu214", "abc123", File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb'))
     m.should_not be_empty
   end

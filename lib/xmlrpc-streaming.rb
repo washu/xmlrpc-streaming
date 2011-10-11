@@ -135,7 +135,7 @@ module XMLRPC
         res.read_body do |b|
           sink.write(b)
         end
-        sink.close
+        sink.size
         sink.open
       end
       resp
@@ -160,8 +160,8 @@ module XMLRPC
       request_message = Tempfile.new('xmlrpc-stream-request')
       data = Tempfile.new("xmlrpc-response-body")
       # Use the streamwrite to write the temp file
-      write = StreamWriter.new(request_message)
-      write.methodCall(method,*args)
+      writer = StreamWriter.new(request_message)
+      writer.methodCall(method,*args)
       request_message.close
       content_length = request_message.size
       request_message.open
@@ -210,16 +210,17 @@ module XMLRPC
       end
       
       # Parse the body up to the correct format and recalc size
-      
+      # for some reason ruby 1.9.2 on windows, tempfile size is larger than number of bytes written to it
+	  # Im no sure why that is
       expected = resp["Content-Length"] || "<unknown>"
       if data.nil? or data.size == 0
         s = data.size
         data.unlink
-        raise "Wrong size. Was #{s}, should be #{expected}"
-      elsif expected != "<unknown>" and expected.to_i != data.size and resp["Transfer-Encoding"].nil?
+        raise "Wrong size. Was #{s}, should be #{expected} #{data.read}"
+      elsif expected != "<unknown>" and expected.to_i > data.size and resp["Transfer-Encoding"].nil?
         s = data.size
-        data.unlink
-        raise "Wrong size. Was #{s}, should be #{expected}"
+		data.unlink
+		raise "Wrong size. Was #{s}, should be #{expected} #{data.read}"
       end
       
       # Copy any cookies sent
