@@ -219,7 +219,7 @@ module XMLRPC
         s = data.size
         data.unlink
         raise "Wrong size. Was #{s}, should be #{expected} #{data.read}"
-      elsif expected != "<unknown>" and expected.to_i > data.size and resp["Transfer-Encoding"].nil?
+      elsif expected != "<unknown>" and expected.to_i != data.size and resp["Transfer-Encoding"].nil?
         s = data.size
 		data.unlink
 		raise "Wrong size. Was #{s}, should be #{expected} #{data.read}"
