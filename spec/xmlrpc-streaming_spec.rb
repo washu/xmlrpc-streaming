@@ -37,7 +37,6 @@ describe "XmlrpcStreaming" do
     client = XMLRPC::Client.new2 "http://salsxmltest.wordpress.com/xmlrpc.php"
     m = client.call "wp.getUsersBlogs", "washu214", "abc123", File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb'))
     m.should_not be_empty
-    puts m.inspect
   end
   
   it "should upload a base64 object to wordpress" do

@@ -51,7 +51,7 @@ module XMLRPC
         # Decode the file data into a new temp file and set the response as a stream
         # the caller will get an IO Object as a result. Only do this if we flagged ourselves
         # as 'recevied an io stream'
-      else
+      elsif name.eql?("base64") and not @use_streams
         @data = Convert.base64(@data)
       end  
       case name
