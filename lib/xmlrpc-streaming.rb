@@ -125,13 +125,6 @@ module XMLRPC
       parser().parseMethodResponse(data)
     end
     
-    #def parser()
-    #  if @parser.nil? then
-    #    
-    #  end
-    #  @parser
-    # end
-    
     private
     
     # Stream our Request over to the server and save the results in a tempfile
@@ -221,9 +214,6 @@ module XMLRPC
         raise "Wrong content-type (received '#{ct}' but expected 'text/xml') *Use set_debug_stream for details"
       end
       
-      # Parse the body up to the correct format and recalc size
-      # for some reason ruby 1.9.2 on windows, tempfile size is larger than number of bytes written to it
-	  # Im no sure why that is
       expected = resp["Content-Length"] || "<unknown>"
       if data.nil? or data.size == 0
         s = data.size
