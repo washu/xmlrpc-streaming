@@ -9,7 +9,8 @@ describe "XmlrpcStreaming" do
   it "should send a body async" do
     client = XMLRPC::Client.new2 "http://time.xmlrpc.com/RPC2"
     proxy = client.proxy_async("currentTime")
-    proxy.getCurrentTime.to_time.should_not  == Time.now
+    t = proxy.getCurrentTime.to_time
+    t.should_not  == Time.now
   end
   it "should send a body sync" do
     client = XMLRPC::Client.new2 "http://time.xmlrpc.com/RPC2"
@@ -36,6 +37,7 @@ describe "XmlrpcStreaming" do
     client = XMLRPC::Client.new2 "http://salsxmltest.wordpress.com/xmlrpc.php"
     m = client.call "wp.getUsersBlogs", "washu214", "abc123", File.open(File.expand_path(File.dirname(__FILE__) + '/spec_helper.rb'))
     m.should_not be_empty
+    puts m.inspect
   end
   
   it "should upload a base64 object to wordpress" do

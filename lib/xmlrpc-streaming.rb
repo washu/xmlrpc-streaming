@@ -35,6 +35,7 @@ require 'xmlrpc/base64'
 require 'xmlrpc/client'
 require 'tempfile'
 require 'stream_writer'
+require 'stream_parser_mixin'
 
 # Add a to_io method to existing base64 class
 module XMLRPC
@@ -124,6 +125,13 @@ module XMLRPC
       parser().parseMethodResponse(data)
     end
     
+    #def parser()
+    #  if @parser.nil? then
+    #    
+    #  end
+    #  @parser
+    # end
+    
     private
     
     # Stream our Request over to the server and save the results in a tempfile
@@ -164,6 +172,8 @@ module XMLRPC
       # Use the streamwrite to write the temp file
       writer = StreamWriter.new(request_message)
       writer.methodCall(method,*args)
+      set_parser(XMLRPC::XMLParser::REXMLStreamParser2.new)
+      @parser.use_streams = writer.has_streams?
       request_message.close
       content_length = request_message.size
       request_message.open

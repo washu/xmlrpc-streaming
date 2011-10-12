@@ -10,7 +10,10 @@ module XMLRPC
         def initialize(io)
           @io = io
         end
-        
+        def has_streams?
+          @had_a_stream ||= false
+          @had_a_stream
+        end
         def methodCall(name, *params)
           @io << '<?xml version="1.0" ?><methodCall><methodName>'
           @io << name
@@ -129,6 +132,7 @@ module XMLRPC
               write_base64(param.to_io)
               
             when IO, respond_to?(:read)
+              @had_a_stream = true
               write_base64(param)
 
             else
