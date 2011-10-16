@@ -110,13 +110,9 @@ module XMLRPC
       end
     end
   end # module StreamParserMixin
-
+  
   module XMLParser
-    class REXMLStreamParser2 < AbstractStreamParser
-      def initialize(streamed = false)
-        require "rexml/document"
-        @parser_class = StreamListener
-      end
+    class AbstractStreamParser2
       def use_streams=(arg)
         @use_streams = arg
       end
@@ -143,7 +139,98 @@ module XMLRPC
         raise "No valid method call - missing method name!" if parser.method_name.nil?
         [parser.method_name, parser.params]
       end
-      
+    end
+  end
+  
+  module XMLParser
+    class NokogiriStreamParser < AbstractStreamParser2
+      def initialize
+        require 'nokogiri'        
+        @parser_class = Class.new(Nokogiri::XML::SAX::Document) do
+          include StreamParserMixin2
+          alias :cdata_block :character
+          alias :characters :character
+          alias :end_element :endElement
+          def start_element(name,attrs)
+            startElement(name)
+          end
+          def start_element_namespace(name, attrs = nil, prefix = nil, uri = nil, ns = nil)
+            startElement(name)
+          end
+          def end_element_namespace(name, prefix = nil, uri = nil) 
+            endElement(name)
+          end
+          def method_missing(*a)
+          end
+          def parse(str)
+            parser = Nokogiri::XML::SAX::Parser.new(self)
+            parser.parse(str)
+          end
+        end
+      end
+    end
+  end
+  
+  module XMLParser
+    class LibXmlStreamParser < AbstractStreamParser2
+      def initialize()
+        require "libxml"
+        @parser_class = StreamCallback
+      end
+      class StreamCallback
+        include StreamParserMixin2
+        Entities = {
+          "lt"   => "<",
+          "gt"   => ">",
+          "amp"  => "&",
+          "quot" => '"',
+          "apos" => "'"
+        }
+        
+        def on_cdata_block(cdata) 
+          character(cdata)
+        end
+        
+        def on_characters(chars)
+          character(chars)
+        end
+                
+        def on_reference (name) 
+          str = Entities[name]
+          if str
+            character(str)
+          else
+            raise "Unknown Entity"
+          end
+        end
+        
+        def on_start_element_ns (name, attributes, prefix, uri, namespaces) 
+          startElement(name)
+        end
+
+        def on_end_element_ns(name, prefix, uri)
+          endElement(name)
+        end         
+        
+        def method_missing(*a)
+        end
+
+        def parse(str)
+          parser = LibXML::XML::SaxParser.io(str)
+          parser.extend(LibXML::XML::SaxParser::Callbacks)
+          parser.callbacks = self
+          parser.parse
+        end
+      end
+    end
+  end
+  
+  module XMLParser
+    class REXMLStreamParser2 < AbstractStreamParser2
+      def initialize()
+        require "rexml/document"
+        @parser_class = StreamListener
+      end
       class StreamListener
         include StreamParserMixin2
 
@@ -159,6 +246,15 @@ module XMLRPC
         def parse(str)
           parser = REXML::Document.parse_stream(str, self)
         end
+      end
+    end
+  end
+  module XMLParser
+    def self.parser_instance(klass)
+      begin
+        klass.new
+      rescue LoadError => e
+        puts e
       end
     end
   end

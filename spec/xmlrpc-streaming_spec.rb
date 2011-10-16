@@ -6,6 +6,7 @@ describe "XmlrpcStreaming" do
     client = XMLRPC::Client.new2 "http://me@test.com/RPC2"
     client.user.should == "me"
   end
+  
   it "should send a body async" do
     client = XMLRPC::Client.new2 "http://time.xmlrpc.com/RPC2"
     proxy = client.proxy_async("currentTime")

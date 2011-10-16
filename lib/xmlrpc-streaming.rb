@@ -15,7 +15,10 @@ that supports a #read(bytes) method to be used instead of having to provide a
 base64 encoded string for binary data. The problem it is trying to solve
 is the case of sending a large binary blob over xmlrpc, which consumes large
 amounts of ram to not only encoded and represent, but also to decode.
-To use transparently
+To use transparently. Please NOTE, we this module overwrite ignores the parser
+settings in the config. We first try Nokogiri, if that isnt available we then
+try LibXML, if that fails we fallback to REML. In any case we only
+use StreamingParsers
 
 require 'xmlrpc/client'
 require 'xmlrpc-streaming'
@@ -165,7 +168,15 @@ module XMLRPC
       # Use the streamwrite to write the temp file
       writer = StreamWriter.new(request_message)
       writer.methodCall(method,*args)
-      set_parser(XMLRPC::XMLParser::REXMLStreamParser2.new)
+      libxmlparser = XMLRPC::XMLParser.parser_instance XMLRPC::XMLParser::LibXmlStreamParser
+      nokogiri = XMLRPC::XMLParser.parser_instance XMLRPC::XMLParser::NokogiriStreamParser
+      if nokogiri
+        set_parser(nokogiri)
+      elsif libxmlparser
+        set_parser(libxmlparser)
+      else # couldnt load one of the other parser so use REXML
+        set_parser(XMLParser::REXMLStreamParser2.new)
+      end
       @parser.use_streams = writer.has_streams?
       request_message.close
       content_length = request_message.size
