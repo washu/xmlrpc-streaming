@@ -34,6 +34,7 @@ you can instead subsitute an object that supports #read(bytes) in it places
 
 
 require 'stringio'
+require 'rbconfig'
 require 'xmlrpc/base64'
 require 'xmlrpc/client'
 require 'tempfile'
@@ -168,7 +169,10 @@ module XMLRPC
       # Use the streamwrite to write the temp file
       writer = StreamWriter.new(request_message)
       writer.methodCall(method,*args)
-      libxmlparser = XMLRPC::XMLParser.parser_instance XMLRPC::XMLParser::LibXmlStreamParser
+      libxmlparser = nil
+	  unless RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ 	  
+		libxmlparser = XMLRPC::XMLParser.parser_instance XMLRPC::XMLParser::LibXmlStreamParser
+	  end
       nokogiri = XMLRPC::XMLParser.parser_instance XMLRPC::XMLParser::NokogiriStreamParser
       if nokogiri
         set_parser(nokogiri)

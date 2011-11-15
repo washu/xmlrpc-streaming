@@ -11,5 +11,4 @@ group :development do
 	gem "jeweler", "~> 1.6.4"
 	gem "libxml4r"
 	gem "nokogiri"
-	gem "rake", "~> 0.9.2.2"
 end
